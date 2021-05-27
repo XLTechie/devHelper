@@ -1,0 +1,73 @@
+version: "{branch}-{build}"
+max_jobs: 1
+
+branches:
+  except:
+    - deployment
+
+environment:
+ PY_PYTHON: 3.7-32
+
+init:
+  - ps: |
+      # For getting the "v" or whatever off of the start of version numbers in the description field
+      $olddescription = $env:APPVEYOR_REPO_TAG_NAME
+      $newdescription=$oldDescription -replace '^.*?[^\d]', ''
+      Set-AppveyorBuildVariable "description" "$newdescription"
+      # Configuration for pre-release status
+      if ($env:APPVEYOR_REPO_TAG_NAME) {
+        if ($env:APPVEYOR_REPO_TAG_NAME -match 'dev|alpha|beta|test') {
+          Set-AppveyorBuildVariable -Name "prerelease" -Value "true"
+        } else {
+          Set-AppveyorBuildVariable -Name "prerelease" -Value "false"
+        }
+      }
+
+install:
+  - set path=%path%;C:\Python37\Scripts
+  - py -m pip install --upgrade pip
+  - py -m pip install markdown
+  - py -m pip install scons
+
+build_script:
+  - set path=%path%;C:\Python37\Scripts
+  - ps: Start-FileDownload 'https://gist.github.com/XLTechie/f0ebdfefef3e5df88b289434ae07370b/raw/bb79b4d989a8245347afdddda0f59f26f1af7279/gettextFiles.zip'
+  - 7z e gettextFiles.zip -y *.exe
+  - scons
+  - scons pot
+
+artifacts:
+  - path: '*.nvda-addon'
+    name: addon
+    type: application/x-nvda-addon
+  - path: '*.pot'
+    type: application/x-pot
+
+after_build:
+  - 7z a buildResults.zip * -r
+  - ps: |
+      if ($env:APPVEYOR_REPO_TAG_NAME) {
+        if ($env:APPVEYOR_REPO_TAG_NAME -match 'test') {
+          Push-AppveyorArtifact buildResults.zip
+        }
+      }
+    
+deploy:
+  release: $(APPVEYOR_REPO_TAG_NAME)
+  description: "Version $(description)"
+  provider: GitHub
+  auth_token:
+    secure: ayZmtkNXgFmwTjA6LMI7/cCcFVAL9w7IiKuCOFeegjntytcAOY8Wzb2LAX2ZqKgY
+  artifact: addon
+  draft: false
+  prerelease: $(prerelease)
+  on:
+    appveyor_repo_tag: true        # deploy on tag push only
+    
+notifications:
+  - provider: Email
+    to:
+      - '{{commitAuthorEmail}}'
+    on_build_success: true
+    on_build_failure: true
+    on_build_status_changed: true

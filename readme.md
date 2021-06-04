@@ -1,16 +1,19 @@
-# Debug Helper
+# Dev Helper
 
 * Author: Luke Davis
 * Download [stable version](https://addons.nvda-project.org/files/get.php?file=debughelper)
 
-The purpose of this add-on is to make debugging things in NVDA easier.
-New features will be added based on user suggestions. All emails or [GitHub issues](https://github.com/XLTechie/debugHelper) with feedback or feature ideas are most welcome.
+The purpose of this add-on is to provide tools for developers.
+It is in the process of evolving from the Debug Helper add-on, and currently only includes features to make debugging things in NVDA easier.
+Some new features will be added in second quarter of 2021, and feature requests are always welcome.
 
-## Key Command
+## Current feature: adding mark lines to the log to aid debugging
+
+### Key Command
 
 * NVDA+Shift+F1: inserts a mark line in the NVDA log.
 
-## Explanation and Usage
+### Explanation and Usage
 
 When you press the command key, the add-on inserts a line like the following in the NVDA log (at the Info level):
 
@@ -36,25 +39,11 @@ Additionally, by default, there is a blank line inserted above each mark. Blank 
 
 Note: the mark count will survive the reloading of plugins (NVDA+Control+F3), but will start back at one if you restart NVDA.
 
-## Configuration:
+### Configuration:
 
-In the Settings section of NVDA Preferences, you will find a "Debug Helper" category. In the settings dialog you can change the number of blank lines inserted before and after each mark line. The default is one line before, and zero after, although you can use zero through 10 lines for either.
+In the Settings section of NVDA Preferences, you will find a "Dev Helper" category. In the settings dialog you can change the number of blank lines inserted before and after each mark line. The default is one line before, and zero after, although you can use zero through 10 lines for either.
 Under the Tools category of NVDA's Input Gestures panel, you can change NVDA+Shift+F1 to a key sequence of your choice.
 
 ## Compatibility:
 
-This add-on is compatible with NVDA versions 2017.3 (used with Windows XP), and all newer versions. Last tested with 2019.3.
-
-## Changelog
-
-Important changes only; see the git history for small stuff.
-
-Latest version: 1.0.3. (2019-08-29)
-
-* Version 1.0.1 (2019-08-26)
-    - Minor bugfix version to probably solve an install problem on certain versions of Windows.
-* Version 1.0 (2019-08-22)
-    - Initial release. Including following features:
-        + Ability to generate numbered mark lines in the log (at info level).
-        + Ability to add 0-10 blank lines before and after each mark line.
-        + Configuration via NVDA settings dialog system.
+This add-on is compatible with NVDA versions 2017.3 (used with Windows XP), and all newer versions. It may or may not work with versions below 2017.3.

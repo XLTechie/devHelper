@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Debug Helper (debugHelper.py), version 1.2
+# Dev Helper (devHelper.py), version 1.4
 # An NVDA global plugin to make dealing with the NVDA log easier and more efficient.
 
 #    Copyright (C) 2019-2021 Luke Davis <luke@newanswertech.com>
@@ -12,7 +12,7 @@
 # You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-# Debug Helper is intended to make debugging tasks easier for developers. If you make frequent use of the NVDA log, this may provide features that help you.
+# Dev Helper is intended to make debugging tasks easier for developers. If you make frequent use of the NVDA log, this may provide features that help you.
 # Other things are planned, but currently the only implemented feature is:
 # Press NVDA+shift+F1, to insert a sequentially numbered line in the log. (Can be remapped under Tools in Input Gesture settings.)
 # This makes it easier to find where you were last, before or after you performed a certain action.
@@ -46,36 +46,36 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	# END CONFIG
 
 	#: Sets the next to be used mark count, initializing it to 1 if not set. Persists across plugin reloads.
-	globalVars.debugHelperMarkCount = getattr(globalVars, 'debugHelperMarkCount', 1)
+	globalVars.devHelperMarkCount = getattr(globalVars, 'devHelperMarkCount', 1)
 
 	# __init__, onConfigDialog, and terminate methods borrowed heavily from Joseph Lee's stuff.
 
 	# Needed for NVDA configuration dialog setup.
 	def __init__(self, *args, **kwargs):
-		super(GlobalPlugin, self).__init__(*args, **kwargs)
+		super().__init__(*args, **kwargs)
 		# Dialog or the panel.
 		if hasattr(gui.settingsDialogs, "SettingsPanel"):
-			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(DebugHelperSettings)
+			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.append(DevHelperSettings)
 		else:
 			self.prefsMenu = gui.mainFrame.sysTrayIcon.preferencesMenu
 			self.dhSettings = self.prefsMenu.Append(
 				wx.ID_ANY,
 				# Translators: the NVDA Preferences menu item for the
-				# debugHelper settings dialog
-				_("&Debug Helper..."),
+				# devHelper settings dialog
+				_("&Dev Helper..."),
 				# Translators: help text for the menu item in NVDA Preferences
-				_("Debug Helper add-on settings")
+				_("Dev Helper add-on settings")
 			)
 			gui.mainFrame.sysTrayIcon.Bind(wx.EVT_MENU, self.onConfigDialog, self.dhSettings)
 
 	# Needed for NVDA configuration dialog setup
 	def onConfigDialog(self, evt):
-		gui.mainFrame._popupSettingsDialog(DebugHelperSettings)
+		gui.mainFrame._popupSettingsDialog(DevHelperSettings)
 
 	# Needed for NVDA configuration dialog cleanup
 	def terminate(self):
 		if hasattr(gui.settingsDialogs, "SettingsPanel"):
-			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(DebugHelperSettings)
+			gui.settingsDialogs.NVDASettingsDialog.categoryClasses.remove(DevHelperSettings)
 		else:
 			try:
 				if wx.version().startswith("4"):
@@ -89,79 +89,79 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 	def script_logAMarkLine(self, gesture):
 		from logHandler import log
 		if len(self.markString) == 0: return	# Sanity check
-		markStringWithNumber = self.markString.format(globalVars.debugHelperMarkCount)
-		newlinesBeforeString = "\n" * config.conf["debugHelper"]["newlinesBefore"]
-		newlinesAfterString = "\n" * config.conf["debugHelper"]["newlinesAfter"]
+		markStringWithNumber = self.markString.format(globalVars.devHelperMarkCount)
+		newlinesBeforeString = "\n" * config.conf["devHelper"]["newlinesBefore"]
+		newlinesAfterString = "\n" * config.conf["devHelper"]["newlinesAfter"]
 		message = "{0}{1}{2}".format(newlinesBeforeString, markStringWithNumber, newlinesAfterString)
 		# Translators: a message telling the user that a mark has been inserted in the log, and
 		# giving its sequence number
-		ui.message(_("Logging mark {0}!".format(globalVars.debugHelperMarkCount)))
+		ui.message(_("Logging mark {0}!".format(globalVars.devHelperMarkCount)))
 		log.info(message)
-		globalVars.debugHelperMarkCount += 1	# Increase the sequence number for next time
+		globalVars.devHelperMarkCount += 1	# Increase the sequence number for next time
 
 	script_logAMarkLine.category=SCRCAT_TOOLS
-	# Translators: input help message for a Debug Helper command
+	# Translators: input help message for a Dev Helper command
 	script_logAMarkLine.__doc__ = _("Inserts a mark line in the log to aid in debugging")
 	__gestures = { "kb:nvda+shift+f1":"logAMarkLine" }
 
 # Add-on config database
-config.conf.spec["debugHelper"] = {
+config.conf.spec["devHelper"] = {
 	"newlinesBefore": "integer(min=0, max=10, default=1)",
 	"newlinesAfter": "integer(min=0, max=10, default=0)",
 }
 
 # Present either the old settings dialog or a settings panel.
 if hasattr(gui.settingsDialogs, "SettingsPanel"):
-	class DebugHelperSettings (gui.settingsDialogs.SettingsPanel):
-		# Translators: This is the label for the Debug Helper settings category in
+	class DevHelperSettings (gui.settingsDialogs.SettingsPanel):
+		# Translators: This is the label for the Dev Helper settings category in
 		# NVDA Settings screen.
-		title = _("Debug Helper")
+		title = _("Dev Helper")
 
 		def makeSettings(self, settingsSizer):
 			dhHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 			self.newlinesBefore = dhHelper.addLabeledControl(
-				# Translators: The label for a setting in Debug Helper settings dialog to set blank lines inserted before marks
+				# Translators: The label for a setting in Dev Helper settings dialog to set blank lines inserted before marks
 				_("Number of blank lines before each mark "
 				"(can make marks easier to find with fast arrowing)"),
 				gui.nvdaControls.SelectOnFocusSpinCtrl, min=0, max=10,
-				initial=config.conf["debugHelper"]["newlinesBefore"]
+				initial=config.conf["devHelper"]["newlinesBefore"]
 			)
 			self.newlinesAfter=dhHelper.addLabeledControl(
-				# Translators: The label for a setting in Debug Helper settings dialog to set blank lines inserted after marks
+				# Translators: The label for a setting in Dev Helper settings dialog to set blank lines inserted after marks
 				_("Number of blank lines after each mark"),
 				gui.nvdaControls.SelectOnFocusSpinCtrl, min=0, max=10,
-				initial=config.conf["debugHelper"]["newlinesAfter"]
+				initial=config.conf["devHelper"]["newlinesAfter"]
 			)
 
 		def onSave(self):
-			config.conf["debugHelper"]["newlinesBefore"] = self.newlinesBefore.Value
-			config.conf["debugHelper"]["newlinesAfter"] = self.newlinesAfter.Value
+			config.conf["devHelper"]["newlinesBefore"] = self.newlinesBefore.Value
+			config.conf["devHelper"]["newlinesAfter"] = self.newlinesAfter.Value
 
 else:
-	class DebugHelperSettings (gui.SettingsDialog):
-		# Translators: This is the label for the Debug Helper settings dialog
+	class DevHelperSettings (gui.SettingsDialog):
+		# Translators: This is the label for the Dev Helper settings dialog
 		# (used in NVDA versions before settings category panel).
-		title = _("Debug Helper Settings")
+		title = _("Dev Helper Settings")
 
 		def makeSettings(self, settingsSizer):
 			dhHelper = gui.guiHelper.BoxSizerHelper(self, sizer=settingsSizer)
 			self.newlinesBefore=dhHelper.addLabeledControl(
-				# Translators: The label for a setting in Debug Helper settings dialog,
+				# Translators: The label for a setting in Dev Helper settings dialog,
 				# to set blank lines inserted before marks
 				_("Number of blank lines before each mark "
 				"(can make marks easier to find with fast arrowing)"),
 				gui.nvdaControls.SelectOnFocusSpinCtrl, min=0, max=10,
-				initial=config.conf["debugHelper"]["newlinesBefore"]
+				initial=config.conf["devHelper"]["newlinesBefore"]
 			)
 			self.newlinesAfter=dhHelper.addLabeledControl(
-				# Translators: The label for a setting in Debug Helper settings dialog,
+				# Translators: The label for a setting in Dev Helper settings dialog,
 				# to set blank lines inserted after marks
 				_("Number of blank lines after each mark"),
 				gui.nvdaControls.SelectOnFocusSpinCtrl, min=0, max=10,
-				initial=config.conf["debugHelper"]["newlinesAfter"]
+				initial=config.conf["devHelper"]["newlinesAfter"]
 			)
 
 		def onOk(self, evt):
-			config.conf["debugHelper"]["newlinesBefore"] = self.newlinesBefore.Value
-			config.conf["debugHelper"]["newlinesAfter"] = self.newlinesAfter.Value
-			super(DebugHelperSettings, self).onOk(evt)
+			config.conf["devHelper"]["newlinesBefore"] = self.newlinesBefore.Value
+			config.conf["devHelper"]["newlinesAfter"] = self.newlinesAfter.Value
+			super(DevHelperSettings, self).onOk(evt)
